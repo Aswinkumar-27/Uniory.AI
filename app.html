@@ -1,0 +1,281 @@
+<!-- index.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Matrimony — Sample</title>
+  <style>
+    :root{
+      --accent:#6b5b95; --muted:#f3f4f6; --card:#ffffff;
+      --danger:#e55353; --success:#38b000;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+    }
+    body{margin:0;background:linear-gradient(180deg,#f8fafc, #eef2ff);color:#111;}
+    header{background:var(--accent);color:#fff;padding:1rem;text-align:center}
+    .container{max-width:1100px;margin:1.25rem auto;padding:1rem}
+    .grid{display:grid;grid-template-columns: 360px 1fr; gap:1rem}
+    @media (max-width:900px){ .grid{grid-template-columns:1fr} }
+    .card{background:var(--card);border-radius:8px;padding:1rem;box-shadow:0 4px 14px rgba(17,24,39,0.06)}
+    form .row{display:flex;gap:.5rem}
+    label{display:block;font-size:.85rem;margin:.35rem 0}
+    input[type="text"], input[type="number"], select, textarea{width:100%;padding:.5rem;border:1px solid #e6e7eb;border-radius:6px}
+    .small{font-size:.85rem;color:#555}
+    button{background:var(--accent);color:#fff;border:none;padding:.6rem .9rem;border-radius:6px;cursor:pointer}
+    button.ghost{background:transparent;color:var(--accent);border:1px solid #ddd}
+    .profiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem}
+    .profile-card{display:flex;flex-direction:column;gap:.5rem;align-items:flex-start}
+    .avatar{width:100%;height:150px;border-radius:6px;background:#f0f2f6;object-fit:cover}
+    .meta{width:100%;display:flex;justify-content:space-between;align-items:center}
+    .badge{background:#eef2ff;color:var(--accent);padding:.2rem .5rem;border-radius:20px;font-weight:600}
+    .controls{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem}
+    .muted{color:#666;font-size:.9rem}
+    .actions{display:flex;gap:.4rem}
+    .danger{background:var(--danger);color:#fff;border:none;padding:.35rem .6rem;border-radius:6px;cursor:pointer}
+  </style>
+</head>
+<body>
+  <header>
+    <h1 style="margin:.25rem 0">Simple Matrimony Portal</h1>
+    <div class="small">Register and browse profiles (client-only demo)</div>
+  </header>
+
+  <main class="container">
+    <div class="grid">
+      <!-- Left: Registration -->
+      <section class="card">
+        <h2 style="margin:0 0 .5rem 0">Register Profile</h2>
+        <form id="profileForm">
+          <label>Full Name <input type="text" id="name" required placeholder="e.g., Rahul Kumar"></label>
+
+          <div style="display:flex;gap:.5rem">
+            <label style="flex:1">Gender
+              <select id="gender">
+                <option value="Male">Boy</option>
+                <option value="Female">Girl</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+            <label style="width:120px">Age <input type="number" id="age" min="18" max="100" value="25"></label>
+          </div>
+
+          <label>City <input type="text" id="city" placeholder="e.g., Mumbai"></label>
+          <label>Education <input type="text" id="education" placeholder="e.g., B.Tech"></label>
+          <label>Religion/Mother Tongue <input type="text" id="religion" placeholder="e.g., Hindu / Hindi"></label>
+          <label>About <textarea id="about" rows="3" placeholder="Short description"></textarea></label>
+
+          <label>Photo URL <input type="text" id="photo" placeholder="https://...jpg — optional"></label>
+
+          <div style="display:flex;gap:.5rem;margin-top:.5rem">
+            <button type="submit">Add Profile</button>
+            <button type="button" id="clearBtn" class="ghost">Clear</button>
+          </div>
+          <p class="small muted" style="margin-top:.6rem">Profiles are saved in browser storage (local demo).</p>
+        </form>
+      </section>
+
+      <!-- Right: Search & results -->
+      <section>
+        <div class="card">
+          <h3 style="margin:.15rem 0">Search & Filters</h3>
+          <div class="controls">
+
+            <select id="filterGender">
+              <option value="all">Any gender</option>
+              <option value="Male">Boy</option>
+              <option value="Female">Girl</option>
+              <option value="Other">Other</option>
+            </select>
+            <input id="filterCity" type="text" placeholder="City">
+            <input id="minAge" type="number" placeholder="Min age" style="width:110px">
+            <input id="maxAge" type="number" placeholder="Max age" style="width:110px">
+            <button id="resetFilters" class="ghost">Reset</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:1rem">
+          <h3 style="margin:.15rem 0">Profiles <span id="count" class="small muted">(0)</span></h3>
+          <div id="profiles" class="profiles" aria-live="polite"></div>
+
+          <div class="card" style="margin-top:.6rem;display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:.5rem">
+              <button id="prevPage" class="ghost small">Prev</button>
+              <span id="pageNumbers" class="small muted"></span>
+              <button id="nextPage" class="ghost small">Next</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:.5rem">
+              <label class="small">Per page
+                <select id="pageSize">
+                  <option value="4">4</option>
+                  <option value="8" selected>8</option>
+                  <option value="12">12</option>
+                </select>
+              </label>
+              <button id="goFirst" class="ghost small">First</button>
+              <button id="goLast" class="ghost small">Last</button>
+            </div>
+          </div>
+
+          <p id="emptyMessage" class="small muted" style="margin-top:.5rem;display:none">No profiles found.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    // Simple client-side profile manager (localStorage)
+    const STORAGE_KEY = 'matrimony_profiles_v1';
+    const sample = [
+      {name:'Aman Singh', gender:'Male', age:28, city:'Delhi', education:'MBA', religion:'Hindu / Hindi', about:'Family oriented, working in finance.', photo:''},
+      {name:'Sneha Rao', gender:'Female', age:25, city:'Bengaluru', education:'B.Tech', religion:'Hindu / Kannada', about:'Software developer, loves travel.', photo:''}
+    ];
+
+    function load() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) { localStorage.setItem(STORAGE_KEY, JSON.stringify(sample)); return sample; }
+      try { return JSON.parse(raw) } catch { return [] }
+    }
+    function save(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); renderProfiles(); }
+
+    // Pagination state
+    let currentPage = 1;
+    let pageSize = 8;
+
+    // Render
+    function renderProfiles(){
+      const list = load();
+      const container = document.getElementById('profiles');
+      const count = document.getElementById('count');
+      const empty = document.getElementById('emptyMessage');
+
+      // apply filters
+      const gender = document.getElementById('filterGender').value;
+      const city = document.getElementById('filterCity').value.trim().toLowerCase();
+      const minAge = parseInt(document.getElementById('minAge').value) || 0;
+      const maxAge = parseInt(document.getElementById('maxAge').value) || 200;
+
+      const filtered = list.filter(p => {
+        if (gender !== 'all' && p.gender !== gender) return false;
+        if (city && !p.city.toLowerCase().includes(city)) return false;
+        if (p.age < minAge || p.age > maxAge) return false;
+        return true;
+      });
+
+      const totalItems = filtered.length;
+      const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      container.innerHTML = '';
+      count.textContent = `(${totalItems})`;
+      if (filtered.length === 0) { empty.style.display='block'; updatePageNumbers(1,1,0); return } else { empty.style.display='none' }
+
+      const start = (currentPage - 1) * pageSize;
+      const pageItems = filtered.slice(start, start + pageSize);
+
+      pageItems.forEach((p, idx) => {
+        const card = document.createElement('div'); card.className='card profile-card';
+        const img = document.createElement('img'); img.className='avatar';
+        img.src = p.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=efefef&color=333`;
+        img.alt = p.name + ' photo';
+        card.appendChild(img);
+
+        const meta = document.createElement('div'); meta.className='meta';
+        meta.innerHTML = `<div><strong>${p.name}</strong><div class="small muted">${p.education} • ${p.city}</div></div><div class="badge">${p.gender}, ${p.age}</div>`;
+        card.appendChild(meta);
+
+        const about = document.createElement('div'); about.className='small'; about.textContent = p.about || '';
+        card.appendChild(about);
+
+        const actions = document.createElement('div'); actions.className='actions';
+        const view = document.createElement('button'); view.className='ghost'; view.textContent='View';
+        view.onclick = ()=> alert(`${p.name}\n\nAge: ${p.age}\nGender: ${p.gender}\nCity: ${p.city}\nEducation: ${p.education}\n\n${p.about}`);
+        const del = document.createElement('button'); del.className='danger'; del.textContent='Delete';
+        del.onclick = ()=> { if(confirm('Delete this profile?')) { removeProfileById(p.id) } };
+        actions.appendChild(view); actions.appendChild(del);
+        card.appendChild(actions);
+
+        container.appendChild(card);
+      });
+
+      updatePageNumbers(currentPage, totalPages, totalItems);
+    }
+
+    function removeProfileById(id){
+      const stored = load();
+      const idx = stored.findIndex(s => s.id === id || s.id === Number(id));
+      if (idx >= 0) {
+        stored.splice(idx,1);
+        save(stored);
+      } else alert('Could not locate profile to delete.');
+    }
+
+    // Handle form
+    document.getElementById('profileForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      const p = {
+        id: Date.now() + Math.floor(Math.random()*1000),
+        name: document.getElementById('name').value.trim(),
+        gender: document.getElementById('gender').value,
+        age: parseInt(document.getElementById('age').value) || 0,
+        city: document.getElementById('city').value.trim(),
+        education: document.getElementById('education').value.trim(),
+        religion: document.getElementById('religion').value.trim(),
+        about: document.getElementById('about').value.trim(),
+        photo: document.getElementById('photo').value.trim()
+      };
+      if (!p.name) return alert('Please enter a name.');
+      const arr = load(); arr.unshift(p); save(arr);
+      this.reset();
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', ()=> document.getElementById('profileForm').reset());
+
+    // Filters
+    ['filterGender','filterCity','minAge','maxAge'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => { currentPage = 1; renderProfiles(); });
+    });
+    document.getElementById('resetFilters').addEventListener('click', ()=>{
+      document.getElementById('filterGender').value='all';
+      document.getElementById('filterCity').value='';
+      document.getElementById('minAge').value='';
+      document.getElementById('maxAge').value='';
+      currentPage = 1; renderProfiles();
+    });
+
+    // ensure ids for legacy data and new profiles
+    function ensureIds(){
+      const arr = load();
+      let changed = false;
+      for (let i=0;i<arr.length;i++){
+        if (!arr[i].id){ arr[i].id = Date.now() + i; changed = true }
+      }
+      if (changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+    }
+    ensureIds();
+
+    // page helpers
+    function updatePageNumbers(cur, total, totalItems){
+      const span = document.getElementById('pageNumbers');
+      span.innerHTML = '';
+      for (let i=1;i<=total;i++){
+        const b = document.createElement('button');
+        b.className = 'page-btn' + (i===cur ? ' active' : '');
+        b.textContent = i;
+        b.addEventListener('click', ()=>{ currentPage = i; renderProfiles(); });
+        span.appendChild(b);
+      }
+      const info = document.createElement('span'); info.className='page-info'; info.textContent = ` Page ${cur} of ${total} (${totalItems})`;
+      span.appendChild(info);
+    }
+
+    document.getElementById('prevPage').addEventListener('click', ()=>{ if (currentPage>1){ currentPage--; renderProfiles(); }});
+    document.getElementById('nextPage').addEventListener('click', ()=>{ currentPage++; renderProfiles(); });
+    document.getElementById('goFirst').addEventListener('click', ()=>{ currentPage = 1; renderProfiles(); });
+    document.getElementById('goLast').addEventListener('click', ()=>{ currentPage = 99999; renderProfiles(); });
+    document.getElementById('pageSize').addEventListener('change', function(){ pageSize = Number(this.value); currentPage = 1; renderProfiles(); });
+
+    // init
+    renderProfiles();
+  </script>
+</body>
+</html>
